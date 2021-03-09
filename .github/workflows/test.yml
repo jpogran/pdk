@@ -1,0 +1,109 @@
+name: CI
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  lint:
+    runs-on: ${{ matrix.cfg.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        cfg:
+          - { os: ubuntu-latest, ruby-version: "2.5", task: "rubocop" }
+          - { os: windows-latest, ruby-version: "2.5", task: "rubocop" }
+          # - { os: ubuntu-latest, ruby-version: "2.5", task: "license_finder" } #with development
+          # - { os: windows-latest, ruby-version: "2.5", task: "license_finder" } #with development
+    env:
+      BUNDLE_JOBS: 4
+      BUNDLE_WITHOUT: "development"
+    steps:
+    - uses: actions/checkout@v2
+    - name: Set up Ruby
+      uses: ruby/setup-ruby@v1
+      with:
+        ruby-version: ${{ matrix.cfg.ruby-version }}
+        bundler-cache: true # runs 'bundle install' and caches installed gems automatically
+    - name: Print environment ${{ matrix.cfg.ruby-version }}
+      run: |
+        bundle --version
+        gem --version
+        cat Gemfile.lock
+        bundle list
+    - name: Run tests ${{ matrix.cfg.ruby-version }}
+      env:
+        TASK: ${{ matrix.cfg.task }}
+      run: |
+        bundle exec rake $TASK
+
+  spec:
+    runs-on: ${{ matrix.cfg.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        cfg:
+          - { os: ubuntu-latest, ruby-version: "2.5", task: "spec:coverage" }
+          - { os: ubuntu-latest, ruby-version: "2.5", task: "spec" }
+          - { os: ubuntu-latest, ruby-version: "2.7", task: "spec" }
+
+          - { os: windows-latest, ruby-version: "2.5", task: "spec:coverage" }
+          - { os: windows-latest, ruby-version: "2.5", task: "spec" }
+          - { os: windows-latest, ruby-version: "2.7", task: "spec" }
+    env:
+      BUNDLE_JOBS: 4
+      BUNDLE_WITHOUT: "development"
+    steps:
+    - uses: actions/checkout@v2
+    - name: Set up Ruby
+      uses: ruby/setup-ruby@v1
+      with:
+        ruby-version: ${{ matrix.cfg.ruby-version }}
+        bundler-cache: true # runs 'bundle install' and caches installed gems automatically
+    - name: Print environment ${{ matrix.cfg.ruby-version }}
+      run: |
+        bundle --version
+        gem --version
+        cat Gemfile.lock
+        bundle list
+    - name: Run tests ${{ matrix.cfg.ruby-version }}
+      env:
+        TASK: ${{ matrix.cfg.task }}
+      run: |
+        bundle exec rake $TASK
+
+  smoke:
+    runs-on: ${{ matrix.cfg.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        cfg:
+          - { os: ubuntu-latest, ruby-version: "2.5", task: "acceptance:smoke" }
+          - { os: windows-latest, ruby-version: "2.5", task: "acceptance:smoke" }
+          - { os: ubuntu-latest, ruby-version: "2.7", task: "test_pdk_as_library" }
+          - { os: windows-latest, ruby-version: "2.7", task: "test_pdk_as_library" }
+          # - { os: ubuntu-latest, ruby-version: "2.5", task: "acceptance:local_parallel" }
+          # - { os: windows-latest, ruby-version: "2.5", task: "acceptance:local_parallel" }
+    env:
+      BUNDLE_JOBS: 4
+      BUNDLE_WITHOUT: "development"
+    steps:
+    - uses: actions/checkout@v2
+    - name: Set up Ruby
+      uses: ruby/setup-ruby@v1
+      with:
+        ruby-version: ${{ matrix.cfg.ruby-version }}
+        bundler-cache: true # runs 'bundle install' and caches installed gems automatically
+    - name: Print environment ${{ matrix.cfg.ruby-version }}
+      run: |
+        bundle --version
+        gem --version
+        cat Gemfile.lock
+        bundle list
+    - name: Run tests ${{ matrix.cfg.ruby-version }}
+      env:
+        TASK: ${{ matrix.cfg.task }}
+      run: |
+        bundle exec rake $TASK
